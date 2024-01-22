@@ -77,7 +77,7 @@ fn main_paj_rgis() {
             scale,
         });
     }
-    println!("{:x}", file.position());
+
     let seperate_storage = file.read_u16::<LE>().unwrap();
     let _base_size = file.read_u16::<LE>().unwrap();
     if seperate_storage > 0 {
@@ -88,18 +88,9 @@ fn main_paj_rgis() {
         let anim_name = read_string(&mut file);
         dbg!(anim_name);
         let anim_root_name = read_string(&mut file);
-        if i > 0 {
-            std::process::exit(0);
-        }
         let _bone_count = file.read_u16::<LE>().unwrap();
-        for _ in 0.._bone_count {
-            file.read_u32::<LE>().unwrap();
-        }
-        println!("{:x}", file.position());
-        file.set_position(0x3d24);
+        file.seek(std::io::SeekFrom::Current(1020)).unwrap();
         let anim_info = AnimInfo::from_file(&mut file);
-        println!("{:?}", anim_info);
-        println!("{:x}", file.position());
         file.seek(std::io::SeekFrom::Current(8)).unwrap();
     }
 }
