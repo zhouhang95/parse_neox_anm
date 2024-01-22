@@ -8,6 +8,38 @@ mod common;
 use crate::common::{read_float3, read_quat, read_half_quat, read_half3};
 
 #[derive(Debug, Clone, Copy)]
+struct AnimInfo {
+    fps: u32,
+    is_loop: bool,
+    has_scaled: bool,
+    prs_flags: u16,
+    accum_flags: u32,
+    pack_prs_flags: u8,
+    bone_separate_flags: u8,
+}
+
+impl AnimInfo {
+    fn from_file(file: &mut Cursor<Vec<u8>>) -> Self {
+        let fps = file.read_u32::<LE>().unwrap();
+        let is_loop = file.read_u8().unwrap() != 0;
+        let has_scaled = file.read_u8().unwrap() != 0;
+        let prs_flags = file.read_u16::<LE>().unwrap();
+        let accum_flags = file.read_u32::<LE>().unwrap();
+        let pack_prs_flags = file.read_u8().unwrap();
+        let bone_separate_flags = file.read_u8().unwrap();
+        Self {
+            fps,
+            is_loop,
+            has_scaled,
+            prs_flags,
+            accum_flags,
+            pack_prs_flags,
+            bone_separate_flags,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 struct BoneTran {
     pos: Vec3,
     rot: Quat,
@@ -27,7 +59,9 @@ fn main_paj_rgis() {
     file.seek(std::io::SeekFrom::Start(4)).unwrap();
     let _version = file.read_u32::<LE>().unwrap();
     let anim_count = file.read_u16::<LE>().unwrap();
+    dbg!(anim_count);
     let bone_count = file.read_u32::<LE>().unwrap();
+    dbg!(bone_count);
     let mut bone_names: Vec<String> = Vec::new();
     for _ in 0..bone_count {
         bone_names.push(read_string(&mut file));
@@ -44,23 +78,34 @@ fn main_paj_rgis() {
         });
     }
     println!("{:x}", file.position());
-    let _seperate_storage = file.read_u32::<LE>().unwrap();
-    let _base_size = file.read_u32::<LE>().unwrap();
+    let seperate_storage = file.read_u16::<LE>().unwrap();
+    let _base_size = file.read_u16::<LE>().unwrap();
+    if seperate_storage > 0 {
+        file.read_u32::<LE>().unwrap();
+    }
     let anim: Vec<()> = Vec::new();
-    for _ in 0..anim_count {
-        let name = read_string(&mut file);
+    for i in 0..anim_count {
+        let anim_name = read_string(&mut file);
+        dbg!(anim_name);
         let anim_root_name = read_string(&mut file);
+        if i > 0 {
+            std::process::exit(0);
+        }
         let _bone_count = file.read_u16::<LE>().unwrap();
         for _ in 0.._bone_count {
             file.read_u32::<LE>().unwrap();
         }
         println!("{:x}", file.position());
-        std::process::exit(0);
+        file.set_position(0x3d24);
+        let anim_info = AnimInfo::from_file(&mut file);
+        println!("{:?}", anim_info);
+        println!("{:x}", file.position());
+        file.seek(std::io::SeekFrom::Current(8)).unwrap();
     }
 }
 
 fn main_rgis_sub() {
-    let content = std::fs::read("00000097.dat").unwrap();
+    let content = std::fs::read("00000018.dat").unwrap();
     let mut file = std::io::Cursor::new(content);
     let name = read_string(&mut file);
     let root_name = read_string(&mut file);
@@ -70,13 +115,7 @@ fn main_rgis_sub() {
         bone_names.push(read_string(&mut file));
     }
     dbg!(bone_names);
-    let fps = file.read_u32::<LE>().unwrap();
-    let is_loop = file.read_u8().unwrap() != 0;
-    let has_scaled = file.read_u8().unwrap() != 0;
-    let prs_flags = file.read_u16::<LE>().unwrap();
-    let accum_flags = file.read_u32::<LE>().unwrap();
-    let pack_prs_flags = file.read_u8().unwrap();
-    let bone_separate_flags = file.read_u8().unwrap();
+    let anim_info = AnimInfo::from_file(&mut file);
     let key_count = file.read_u16::<LE>().unwrap();
     dbg!(key_count);
     for _ in 0..key_count {
@@ -148,13 +187,7 @@ fn main_mj_rgis() {
         for _ in 0..bone_count {
             read_string(&mut file);
         }
-        let _sample_fps = file.read_u32::<LE>().unwrap();
-        let _is_loop = file.read_u8().unwrap() != 0;
-        let _has_scaled = file.read_u8().unwrap() != 0;
-        let _prs_flags = file.read_u16::<LE>().unwrap();
-        let _accum_flags = file.read_u32::<LE>().unwrap();
-        let _pack_prs_flags = file.read_u8().unwrap();
-        let _bone_separate_flags = file.read_u8().unwrap();
+        let anim_info = AnimInfo::from_file(&mut file);
         let key_count = file.read_u16::<LE>().unwrap();
         dbg!(key_count);
         for _ in 0..key_count {
@@ -199,5 +232,5 @@ fn main_mj_rgis() {
 }
 
 fn main() {
-    main_mj_rgis();
+    main_paj_rgis();
 }
