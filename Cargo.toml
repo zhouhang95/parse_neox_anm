@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 glam = "0.25"
 byteorder = "1"
-
+half = "2"

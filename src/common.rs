@@ -25,6 +25,14 @@ pub fn read_float3<T>(file: &mut T) -> Vec3
     let z = file.read_f32::<LittleEndian>().unwrap();
     vec3(x, y, z)
 }
+
+pub fn read_half3<T>(file: &mut T) -> Vec3
+    where T: Read {
+    let x = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    let y = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    let z = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    vec3(x, y, z)
+}
 pub fn write_float3<T>(file: &mut T, v: Vec3)
     where T: Write {
     file.write_f32::<LittleEndian>(v.x).unwrap();
@@ -49,6 +57,16 @@ pub fn read_quat<T>(file: &mut T) -> Quat
     let w = file.read_f32::<LittleEndian>().unwrap();
     quat(x, y, z, w)
 }
+
+pub fn read_half_quat<T>(file: &mut T) -> Quat
+    where T: Read {
+    let x = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    let y = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    let z = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    let w = half::f16::from_bits(file.read_u16::<LittleEndian>().unwrap()).to_f32();
+    quat(x, y, z, w)
+}
+
 pub fn write_float4<T>(file: &mut T, v: Vec4)
     where T: Write {
     file.write_f32::<LittleEndian>(v.x).unwrap();
