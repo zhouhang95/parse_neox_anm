@@ -78,9 +78,9 @@ fn main_paj_rgis() {
         });
     }
 
-    let seperate_storage = file.read_u16::<LE>().unwrap();
+    let separate_storage = file.read_u16::<LE>().unwrap();
     let _base_size = file.read_u16::<LE>().unwrap();
-    if seperate_storage > 0 {
+    if separate_storage > 0 {
         file.read_u32::<LE>().unwrap();
     }
     let anim: Vec<()> = Vec::new();
@@ -169,7 +169,7 @@ fn main_mj_rgis() {
             scale,
         });
     }
-    let _seperate_storage = file.read_u16::<LE>().unwrap();
+    let _separate_storage = file.read_u16::<LE>().unwrap();
     let _base_size = file.read_u16::<LE>().unwrap();
     for _ in 0..anim_count {
         let _name = read_string(&mut file);
